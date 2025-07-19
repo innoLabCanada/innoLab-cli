@@ -34,7 +34,15 @@ export const Tips: React.FC<TipsProps> = ({ config }) => {
         </Text>
       )}
       <Text color={Colors.Foreground}>
-        {geminiMdFileCount === 0 ? '4.' : '3.'}{' '}
+        {geminiMdFileCount === 0 ? '4.' : '3.'} To use a local Ollama model,
+        start the CLI with the{' '}
+        <Text bold color={Colors.AccentPurple}>
+          --ollama
+        </Text>{' '}
+        flag.
+      </Text>
+      <Text color={Colors.Foreground}>
+        {geminiMdFileCount === 0 ? '5.' : '4.'}{' '}
         <Text bold color={Colors.AccentPurple}>
           /help
         </Text>{' '}

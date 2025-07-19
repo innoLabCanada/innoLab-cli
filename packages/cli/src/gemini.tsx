@@ -88,6 +88,7 @@ async function relaunchWithAdditionalArgs(additionalArgs: string[]) {
 import { runAcpPeer } from './acp/acpPeer.js';
 
 export async function main() {
+  
   const workspaceRoot = process.cwd();
   const settings = loadSettings(workspaceRoot);
 
@@ -106,12 +107,14 @@ export async function main() {
 
   const argv = await parseArguments();
   const extensions = loadExtensions(workspaceRoot);
+  
   const config = await loadCliConfig(
     settings.merged,
     extensions,
     sessionId,
     argv,
   );
+  
 
   if (argv.promptInteractive && !process.stdin.isTTY) {
     console.error(
@@ -141,7 +144,9 @@ export async function main() {
 
   setMaxSizedBoxDebugging(config.getDebugMode());
 
+  
   await config.initialize();
+  
 
   if (settings.merged.theme) {
     if (!themeManager.setActiveTheme(settings.merged.theme)) {
@@ -153,11 +158,13 @@ export async function main() {
 
   // hop into sandbox if we are outside and sandboxing is enabled
   if (!process.env.SANDBOX) {
+    
     const memoryArgs = settings.merged.autoConfigureMaxOldSpaceSize
       ? getNodeMemoryArgs(config)
       : [];
     const sandboxConfig = config.getSandbox();
     if (sandboxConfig) {
+      
       if (settings.merged.selectedAuthType) {
         // Validate authentication here because the sandbox will interfere with the Oauth2 web redirect.
         try {
@@ -177,6 +184,7 @@ export async function main() {
       // Not in a sandbox and not entering one, so relaunch with additional
       // arguments to control memory usage if needed.
       if (memoryArgs.length > 0) {
+        
         await relaunchWithAdditionalArgs(memoryArgs);
         process.exit(0);
       }
@@ -188,10 +196,12 @@ export async function main() {
     (config.getNoBrowser() || !shouldAttemptBrowserLaunch())
   ) {
     // Do oauth before app renders to make copying the link possible.
+    
     await getOauthClient(settings.merged.selectedAuthType, config);
   }
 
   if (config.getExperimentalAcp()) {
+    
     return runAcpPeer(config, settings);
   }
 
@@ -202,10 +212,11 @@ export async function main() {
   ];
 
   const shouldBeInteractive =
-    !!argv.promptInteractive || (process.stdin.isTTY && input?.length === 0);
+    !!argv.promptInteractive || (process.stdin.isTTY && !input);
 
   // Render UI, passing necessary config values. Check that there is no command line question.
   if (shouldBeInteractive) {
+    
     const version = await getCliVersion();
     setWindowTitle(basename(workspaceRoot), settings);
     const instance = render(
@@ -215,6 +226,7 @@ export async function main() {
           settings={settings}
           startupWarnings={startupWarnings}
           version={version}
+          ollamaModels={config.getOllamaModels()}
         />
       </React.StrictMode>,
       { exitOnCtrlC: false },
@@ -226,7 +238,7 @@ export async function main() {
   // If not a TTY, read from stdin
   // This is for cases where the user pipes input directly into the command
   if (!process.stdin.isTTY && !input) {
-    input += await readStdin();
+    input = await readStdin();
   }
   if (!input) {
     console.error('No input provided via stdin.');
@@ -244,6 +256,7 @@ export async function main() {
   });
 
   // Non-interactive mode handled by runNonInteractive
+  
   const nonInteractiveConfig = await loadNonInteractiveConfig(
     config,
     extensions,

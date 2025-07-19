@@ -1,63 +1,75 @@
-# Gemini CLI Roadmap
+# Ollama Integration Plan and Changelog
 
-The [Official Gemini CLI Roadmap](https://github.com/orgs/google-gemini/projects/11/)
+This document outlines the plan for integrating Ollama as a content generator within the `innoLab-cli` and details the changes that have already been implemented.
 
-Gemini CLI is an open-source AI agent that brings the power of Gemini directly into your terminal. It provides lightweight access to Gemini, giving you the most direct path from your prompt to our model.
+## Plan
 
-This document outlines our approach to the Gemini CLI roadmap. Here, you'll find our guiding principles and a breakdown of the key areas we are
-focused on for development. Our roadmap is not a static list but a dynamic set of priorities that are tracked live in our GitHub Issues.
+### Phase 1: Core Integration (Completed)
 
-As an [Apache 2.0 open source project](https://github.com/google-gemini/gemini-cli?tab=Apache-2.0-1-ov-file#readme), we appreciate and welcome [public contributions](https://github.com/google-gemini/gemini-cli/blob/main/CONTRIBUTING.md), and will give first priority to those contributions aligned with our roadmap. If you want to propose a new feature or change to our roadmap, please start by [opening an issue for discussion](https://github.com/google-gemini/gemini-cli/issues/new/choose).
+The initial phase focuses on establishing a basic connection to an Ollama-hosted LLM and handling non-streaming text generation.
 
-## Disclaimer
+- **[x] Create `OllamaContentGenerator`:** Implement a new class that conforms to the existing `ContentGenerator` interface.
+- **[x] Implement `generateContent`:** Implement the primary method for sending a prompt to the Ollama `/api/generate` endpoint and receiving a complete response.
+- **[x] Add Configuration Options:**
+  - **[x] Introduce `USE_OLLAMA` AuthType:** Add a new authentication type to distinguish Ollama requests.
+  - **[x] Add CLI Flags:** Introduce `--ollama` to enable the integration and `--ollama-host` to specify the Ollama server address.
+- **[x] Update Application Logic:** Modify the core configuration and content generator creation logic to recognize and use the new Ollama integration when activated by the CLI flags.
+- **[x] Ensure Build Integrity:** Fix any TypeScript or build-related errors to ensure the project compiles successfully after the changes.
 
-This roadmap represents our current thinking and is for informational purposes only. It is not a commitment or a guarantee of future delivery. The development, release, and timing of any features are subject to change, and we may update the roadmap based on community discussions as well as when our priorities evolve.
+### Phase 2: Feature Parity and Refinement (Future Work)
 
-## Guiding Principles
+This phase will focus on implementing the remaining features of the `ContentGenerator` interface and improving the overall integration.
 
-Our development is guided by the following principles:
+- **[ ] Implement User-Friendly Model Selection:**
+  - **[ ]** On startup in Ollama mode, fetch the list of available models from the Ollama `/api/tags` endpoint.
+  - **[ ]** Prompt the user to select a model from the fetched list.
+  - **[ ]** Use the selected model for all subsequent `generateContent` requests.
+- **[ ] Enhance UI for Ollama Mode:**
+  - **[ ]** Modify the CLI's main UI to display the currently active Ollama model name (e.g., "Ollama: llama3") instead of the Gemini model name.
+- **[ ] Implement `generateContentStream`:** Support streaming responses from the Ollama API for a more interactive experience.
+- **[ ] Implement `countTokens`:** Provide a mechanism for token counting compatible with Ollama models. This may require research into appropriate tokenization libraries.
+- **[ ] Implement `embedContent`:** Add support for generating content embeddings using a model hosted on Ollama.
+- **[ ] Add Testing:** Write comprehensive unit and integration tests for the `OllamaContentGenerator` to ensure its reliability and prevent regressions.
+- **[ ] Improve Error Handling:** Enhance error handling for network issues, model availability, and other potential problems when interacting with the Ollama API.
+- **[ ] Update Documentation:** Thoroughly document the Ollama integration for end-users.
 
-- **Power & Simplicity:** Deliver access to state-of-the-art Gemini models with an intuitive and easy-to-use lightweight command-line interface.
-- **Extensibility:** An adaptable agent to help you with a variety of use cases and environments along with the ability to run these agents anywhere.
-- **Intelligent:** Gemini CLI should be reliably ranked among the best agentic tools as measured by benchmarks like SWE Bench, Terminal Bench, and CSAT.
-- **Free and Open Source:** Foster a thriving open source community where cost isn’t a barrier to personal use, and PRs get merged quickly. This means resolving and closing issues, pull requests, and discussion posts quickly.
+---
 
-## How the Roadmap Works
+## Changelog (as of 2025-07-19)
 
-Our roadmap is managed directly through Github Issues. See our entry point Roadmap Issue [here](https://github.com/google-gemini/gemini-cli/issues/4191). This approach allows for transparency and gives you a direct way to learn more or get involved with any specific initiative. All our roadmap items will be tagged as Type:`Feature` and Label:`maintainer` for features we are actively working on, or Type:`Task` and Label:`maintainer` for a more detailed list of tasks.
+### New Files
 
-Issues are organized to provide key information at a glance:
+- **`packages/core/src/core/ollamaContentGenerator.ts`**
+  - Created this file to house the `OllamaContentGenerator` class.
+  - Implemented the `generateContent` method, which sends a POST request to the Ollama `/api/generate` endpoint.
+  - Added a constructor that reads the Ollama host from the `OLLAMA_HOST` environment variable, defaulting to `http://localhost:11434`.
+  - Added placeholder implementations for `generateContentStream`, `countTokens`, and `embedContent` that throw `Method not implemented` errors.
 
-- **Target Quarter:** `Milestone` denotes the anticipated delivery timeline.
-- **Feature Area:** Labels such as `area/model` or `area/tooling` categorizes the work.
-- **Issue Type:** _Workstream_ => _Epics_ => _Features_ => _Tasks|Bugs_
+### Modified Files
 
-To see what we're working on, you can filter our issues by these dimensions. See all our items [here](https://github.com/orgs/google-gemini/projects/11/views/19)
+- **`packages/core/src/core/contentGenerator.ts`**
+  - **`AuthType` Enum:** Added `USE_OLLAMA` as a new variant.
+  - **`ContentGeneratorConfig` Type:** Added an optional `ollama?: boolean` property.
+  - **`createContentGeneratorConfig()`:** Updated to recognize `AuthType.USE_OLLAMA` and set the `ollama` flag in the configuration.
+  - **`createContentGenerator()`:** Updated to instantiate and return `OllamaContentGenerator` when the `authType` is `USE_OLLAMA`.
 
-## Focus Areas
+- **`packages/cli/src/config/config.ts`**
+  - **CLI Flags:** Added the `--ollama` (boolean) and `--ollama-host` (string) flags using `yargs`.
+  - **`CliArgs` Interface:** Updated to include the `ollama` and `ollamaHost` properties.
+  - **`loadCliConfig()`:** Modified the function to check for the `--ollama` flag. If present, it sets the `selectedAuthType` to `USE_OLLAMA` and sets the `OLLAMA_HOST` environment variable based on the `--ollama-host` flag.
 
-To better organize our efforts, we categorize our work into several key feature areas. These labels are used on our GitHub Issues to help you filter and
-find initiatives that interest you.
+### Dependencies
 
-- **Authentication:** Secure user access via API keys, Gemini Code Assist login etc.
-- **Model:** Support new Gemini models, multi-modality, local execution, and performance tuning.
-- **User Experience:** Improve the CLI's usability, performance, interactive features, and documentation.
-- **Tooling:** Built-in tools and the MCP ecosystem.
-- **Core:** Core functionality of the CLI
-- **Extensibility:** Bringing Gemini CLI to other surfaces e.g. GitHub.
-- **Contribution:** Improve the contribution process via test automation and CI/CD pipeline enhancements.
-- **Platform:** Manage installation, OS support, and the underlying CLI framework.
-- **Quality:** Focus on testing, reliability, performance, and overall product quality.
-- **Background Agents:** Enable long-running, autonomous tasks and proactive assistance.
-- **Security and Privacy:** For all things related to security and privacy
+- **`packages/core/package.json`**
+  - Added `node-fetch` to the `dependencies`.
+  - Added `@types/node-fetch` to the `devDependencies`.
 
-## How to Contribute
+### Build and Compilation
 
-Gemini CLI is an open-source project, and we welcome contributions from the community! Whether you're a developer, a designer, or just an enthusiastic user you can find our [Community Guidelines here](https://github.com/google-gemini/gemini-cli/blob/main/CONTRIBUTING.md) to learn how to get started. There are many ways to get involved:
-
-- **Roadmap:** Please review and find areas in our [roadmap](https://github.com/google-gemini/gemini-cli/issues/4191) that you would like to contribute to. Contributions based on this will be easiest to integrate with.
-- **Report Bugs:** If you find an issue, please create a bug(https://github.com/google-gemini/gemini-cli/issues/new?template=bug_report.yml) with as much detail as possible. If you believe it is a critical breaking issue preventing direct CLI usage, please tag it as `priorty/p0`.
-- **Suggest Features:** Have a great idea? We'd love to hear it! Open a [feature request](https://github.com/google-gemini/gemini-cli/issues/new?template=feature_request.yml).
-- **Contribute Code:** Check out our [CONTRIBUTING.md](https://github.com/google-gemini/gemini-cli/blob/main/CONTRIBUTING.md) file for guidelines on how to submit pull requests. We have a list of "good first issues" for new contributors.
-- **Write Documentation:** Help us improve our documentation, tutorials, and examples.
-  We are excited about the future of Gemini CLI and look forward to building it with you!
+- Resolved multiple TypeScript errors that arose during the integration process, including:
+  - Duplicate identifiers.
+  - Missing `.js` extensions in relative import paths.
+  - Type casting issues with `ContentListUnion`.
+  - Incorrect object structures for API responses.
+  - Handling of potentially `undefined` objects.
+- Ensured the entire `innoLab-cli` project builds successfully after all changes were applied.

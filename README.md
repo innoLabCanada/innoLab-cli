@@ -43,6 +43,42 @@ With the Gemini CLI you can:
 
 You are now ready to use the Gemini CLI!
 
+## Building from Source
+
+If you want to build the Gemini CLI from source, you'll need to clone the repository and install the dependencies first.
+
+```bash
+git clone https://github.com/google-gemini/gemini-cli.git
+cd gemini-cli
+npm install
+```
+
+### Building with Preflight Checks (Recommended)
+
+To ensure that your build is valid and all tests pass, run the preflight check. This will build the repository, run all tests, check for type errors, and lint the code.
+
+```bash
+npm run preflight
+```
+
+### Building without Tests
+
+If you want to quickly build the package without running the full test suite, you can use the `bundle` command.
+
+```bash
+npm run bundle
+```
+
+## Installing from Source
+
+After building the CLI, you can install it globally from your local source code.
+
+```bash
+npm install -g .
+```
+
+This will make the `gemini` command available in your terminal, using the code you just built.
+
 ### Use a Gemini API key:
 
 The Gemini API provides a free tier with [100 requests per day](https://ai.google.dev/gemini-api/docs/rate-limits#free-tier) using Gemini 2.5 Pro, control over which model you use, and access to higher rate limits (with a paid plan):

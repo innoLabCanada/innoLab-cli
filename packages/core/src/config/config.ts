@@ -154,6 +154,7 @@ export interface ConfigParameters {
   noBrowser?: boolean;
   summarizeToolOutput?: Record<string, SummarizeToolOutputSettings>;
   ideMode?: boolean;
+  ollamaModels?: string[];
 }
 
 export class Config {
@@ -208,6 +209,7 @@ export class Config {
     | Record<string, SummarizeToolOutputSettings>
     | undefined;
   private readonly experimentalAcp: boolean = false;
+  private readonly ollamaModels: string[] | undefined;
 
   constructor(params: ConfigParameters) {
     this.sessionId = params.sessionId;
@@ -257,6 +259,7 @@ export class Config {
     this.noBrowser = params.noBrowser ?? false;
     this.summarizeToolOutput = params.summarizeToolOutput;
     this.ideMode = params.ideMode ?? false;
+    this.ollamaModels = params.ollamaModels;
 
     if (params.contextFileName) {
       setGeminiMdFilename(params.contextFileName);
@@ -533,6 +536,10 @@ export class Config {
 
   getIdeMode(): boolean {
     return this.ideMode;
+  }
+
+  getOllamaModels(): string[] | undefined {
+    return this.ollamaModels;
   }
 
   async getGitService(): Promise<GitService> {

@@ -7,7 +7,10 @@
 import yargs from 'yargs/yargs';
 import { hideBin } from 'yargs/helpers';
 import process from 'node:process';
+import * as fs from 'node:fs';
+import * as path from 'node:path';
 import {
+  AuthType,
   Config,
   loadServerHierarchicalMemory,
   setGeminiMdFilename as setServerGeminiMdFilename,
@@ -19,6 +22,7 @@ import {
   TelemetryTarget,
   MCPServerConfig,
   IDE_SERVER_NAME,
+  OllamaContentGenerator,
 } from '@google/gemini-cli-core';
 import { Settings } from './settings.js';
 
@@ -59,11 +63,26 @@ export interface CliArgs {
   listExtensions: boolean | undefined;
   ideMode: boolean | undefined;
   proxy: string | undefined;
+  ollama: boolean | undefined;
+  ollamaHost: string | undefined;
+  ollamaModel: string | undefined;
 }
 
 export async function parseArguments(): Promise<CliArgs> {
+  let agentName = 'gemini';
+  try {
+    const propertiesPath = path.resolve(process.cwd(), 'config.properties');
+    const properties = fs.readFileSync(propertiesPath, 'utf8');
+    const match = properties.match(/^AGENT_NAME=(.*)$/m);
+    if (match) {
+      agentName = match[1].trim();
+    }
+  } catch (_error) {
+    // Ignore error if file doesn't exist
+  }
+
   const yargsInstance = yargs(hideBin(process.argv))
-    .scriptName('gemini')
+    .scriptName(agentName)
     .usage(
       '$0 [options]',
       'Gemini CLI - Launch an interactive CLI, use -p/--prompt for non-interactive mode',
@@ -193,6 +212,21 @@ export async function parseArguments(): Promise<CliArgs> {
       description:
         'Proxy for gemini client, like schema://user:password@host:port',
     })
+    .option('ollama', {
+      type: 'boolean',
+      description: 'Use Ollama as the content generator.',
+      default: false,
+    })
+    .option('ollama-host', {
+      type: 'string',
+      description: 'Ollama host, e.g. http://localhost:7162',
+      default: 'http://localhost:7162',
+    })
+    .option('ollama-model', {
+      type: 'string',
+      description: 'The Ollama model to use.',
+      default: 'llama3.2:latest',
+    })
     .version(await getCliVersion()) // This will enable the --version flag based on package.json
     .alias('v', 'version')
     .help()
@@ -241,6 +275,15 @@ export async function loadCliConfig(
   sessionId: string,
   argv: CliArgs,
 ): Promise<Config> {
+  let ollamaModels: string[] | undefined;
+  if (argv.ollama) {
+    settings.selectedAuthType = AuthType.USE_OLLAMA;
+    process.env.OLLAMA_HOST = argv.ollamaHost;
+    const ollama = new OllamaContentGenerator();
+    ollama.setModel(argv.ollamaModel!);
+    ollamaModels = await ollama.listModels();
+  }
+
   const debugMode =
     argv.debug ||
     [process.env.DEBUG, process.env.DEBUG_MODE].some(
@@ -428,6 +471,7 @@ export async function loadCliConfig(
     noBrowser: !!process.env.NO_BROWSER,
     summarizeToolOutput: settings.summarizeToolOutput,
     ideMode,
+    ollamaModels,
   });
 }
 

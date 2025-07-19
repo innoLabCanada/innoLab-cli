@@ -33,4 +33,9 @@ export default defineConfig({
       ],
     },
   },
+  resolve: {
+    alias: {
+      '@google/gemini-cli-core': '../core/src/index.ts',
+    },
+  },
 });

@@ -27,6 +27,7 @@ export {
   logApiResponse,
   logFlashFallback,
 } from './loggers.js';
+export type { TelemetryEvent } from './types.js';
 export {
   StartSessionEvent,
   EndSessionEvent,
@@ -35,7 +36,6 @@ export {
   ApiRequestEvent,
   ApiErrorEvent,
   ApiResponseEvent,
-  TelemetryEvent,
   FlashFallbackEvent,
 } from './types.js';
 export { SpanStatusCode, ValueType } from '@opentelemetry/api';

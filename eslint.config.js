@@ -137,24 +137,6 @@ export default tseslint.config(
       'default-case': 'error',
     },
   },
-  {
-    files: ['./**/*.{tsx,ts,js}'],
-    plugins: {
-      'license-header': licenseHeader,
-    },
-    rules: {
-      'license-header/header': [
-        'error',
-        [
-          '/**',
-          ' * @license',
-          ' * Copyright 2025 Google LLC',
-          ' * SPDX-License-Identifier: Apache-2.0',
-          ' */',
-        ],
-      ],
-    },
-  },
   // extra settings for scripts that we run directly with node
   {
     files: ['./scripts/**/*.js', 'esbuild.config.js'],
@@ -188,6 +170,13 @@ export default tseslint.config(
     rules: {
       'no-restricted-syntax': 'off',
       '@typescript-eslint/no-require-imports': 'off',
+    },
+  },
+  {
+    // Turn off useless escape for the AsciiArt file.
+    files: ['packages/cli/src/ui/components/AsciiArt.ts'],
+    rules: {
+      'no-useless-escape': 'off',
     },
   },
   // Prettier config must be last

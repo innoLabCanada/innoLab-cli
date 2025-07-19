@@ -38,5 +38,9 @@ export const validateAuthMethod = (authMethod: string): string | null => {
     return null;
   }
 
+  if (authMethod === AuthType.USE_OLLAMA) {
+    return null;
+  }
+
   return 'Invalid auth method selected.';
 };

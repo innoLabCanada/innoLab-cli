@@ -7,6 +7,7 @@
 import { useState, useRef, useCallback, useEffect, useMemo } from 'react';
 import { useInput } from 'ink';
 import {
+  AuthType,
   Config,
   GeminiClient,
   GeminiEventType as ServerGeminiEventType,
@@ -93,6 +94,7 @@ export const useGeminiStream = (
   performMemoryRefresh: () => Promise<void>,
   modelSwitchedFromQuotaError: boolean,
   setModelSwitchedFromQuotaError: React.Dispatch<React.SetStateAction<boolean>>,
+  selectedOllamaModel?: string,
 ) => {
   const [initError, setInitError] = useState<string | null>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
@@ -565,6 +567,13 @@ export const useGeminiStream = (
         prompt_id!,
       );
 
+      if (
+        config.getContentGeneratorConfig()?.authType === AuthType.USE_OLLAMA &&
+        !selectedOllamaModel
+      ) {
+        return;
+      }
+
       if (!shouldProceed || queryToSend === null) {
         return;
       }
@@ -601,7 +610,9 @@ export const useGeminiStream = (
           handleLoopDetectedEvent();
         }
       } catch (error: unknown) {
-        if (error instanceof UnauthorizedError) {
+        if (error instanceof Error && error.message === 'Model not selected') {
+          // Do nothing, wait for the user to select a model.
+        } else if (error instanceof UnauthorizedError) {
           onAuthError();
         } else if (!isNodeError(error) || error.name !== 'AbortError') {
           addItem(
@@ -638,6 +649,7 @@ export const useGeminiStream = (
       startNewPrompt,
       getPromptCount,
       handleLoopDetectedEvent,
+      selectedOllamaModel,
     ],
   );
 

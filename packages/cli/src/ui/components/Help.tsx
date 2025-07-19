@@ -60,6 +60,28 @@ export const Help: React.FC<Help> = ({ commands }) => (
 
     <Box height={1} />
 
+    {/* Model Switching */}
+    <Text bold color={Colors.Foreground}>
+      Using Ollama:
+    </Text>
+    <Text color={Colors.Foreground}>
+      To use a local Ollama model, start the CLI with the following flags:
+    </Text>
+    <Text color={Colors.Foreground}>
+      <Text bold color={Colors.AccentPurple}>
+        --ollama
+      </Text>{' '}
+      - Use a local Ollama model.
+    </Text>
+    <Text color={Colors.Foreground}>
+      <Text bold color={Colors.AccentPurple}>
+        --ollama-host &lt;url&gt;
+      </Text>{' '}
+      - (Optional) Specify the Ollama server URL.
+    </Text>
+
+    <Box height={1} />
+
     {/* Commands */}
     <Text bold color={Colors.Foreground}>
       Commands:

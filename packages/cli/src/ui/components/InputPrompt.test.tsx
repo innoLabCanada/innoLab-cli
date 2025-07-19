@@ -14,6 +14,7 @@ import { useShellHistory } from '../hooks/useShellHistory.js';
 import { useCompletion } from '../hooks/useCompletion.js';
 import { useInputHistory } from '../hooks/useInputHistory.js';
 import * as clipboardUtils from '../utils/clipboardUtils.js';
+import * as path from 'node:path';
 import { createMockCommandContext } from '../../test-utils/mockCommandContext.js';
 
 vi.mock('../hooks/useShellHistory.js');
@@ -286,9 +287,12 @@ describe('InputPrompt', () => {
 
     it('should insert image path at cursor position with proper spacing', async () => {
       vi.mocked(clipboardUtils.clipboardHasImage).mockResolvedValue(true);
-      vi.mocked(clipboardUtils.saveClipboardImage).mockResolvedValue(
-        '/test/.gemini-clipboard/clipboard-456.png',
+      const imagePath = path.join(
+        '/test',
+        '.gemini-clipboard',
+        'clipboard-456.png',
       );
+      vi.mocked(clipboardUtils.saveClipboardImage).mockResolvedValue(imagePath);
 
       // Set initial text and cursor position
       mockBuffer.text = 'Hello world';
@@ -310,9 +314,11 @@ describe('InputPrompt', () => {
         .calls[0];
       expect(actualCall[0]).toBe(5); // start offset
       expect(actualCall[1]).toBe(5); // end offset
-      expect(actualCall[2]).toMatch(
-        /@.*\.gemini-clipboard\/clipboard-456\.png/,
-      ); // flexible path match
+      const insertedText = actualCall[2] as string;
+      // Normalize both paths to use forward slashes for a consistent comparison
+      const normalizedInsertedText = insertedText.replace(/\\/g, '/');
+      const normalizedExpectedPath = ` @${imagePath.replace(/\\/g, '/')}`;
+      expect(normalizedInsertedText).toBe(normalizedExpectedPath);
       unmount();
     });
 
